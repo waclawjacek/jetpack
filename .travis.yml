@@ -15,7 +15,7 @@ php:
 - "7.0"
 - "7.2"
 - "7.3"
-- "7.4snapshot"
+- "7.4"
 
 env:
   # Global variable is re-defined in matrix-include -list
