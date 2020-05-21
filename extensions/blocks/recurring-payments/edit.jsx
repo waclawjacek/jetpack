@@ -2,14 +2,12 @@
  * External dependencies
  */
 import classnames from 'classnames';
-import SubmitButton from '../../shared/submit-button';
 import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
-import { pick } from 'lodash';
 import formatCurrency from '@automattic/format-currency';
 import { addQueryArgs, getQueryArg, isURL } from '@wordpress/url';
 import { compose } from '@wordpress/compose';
-import { withSelect } from '@wordpress/data';
+import { withSelect, select, dispatch } from '@wordpress/data';
 import {
 	Button,
 	ExternalLink,
@@ -20,7 +18,7 @@ import {
 	withNotices,
 	SelectControl,
 } from '@wordpress/components';
-import { InspectorControls, BlockIcon } from '@wordpress/block-editor';
+import { InspectorControls, InnerBlocks, BlockIcon } from '@wordpress/block-editor';
 import { Fragment, Component } from '@wordpress/element';
 
 /**
@@ -340,11 +338,18 @@ class MembershipsButtonEdit extends Component {
 		return formatCurrency( parseFloat( product.price ), product.currency );
 	};
 
-	setMembershipAmount = id =>
-		this.props.setAttributes( {
-			planId: id,
-			submitButtonText: this.getFormattedPriceByProductId( id ) + __( ' Contribution', 'jetpack' ),
-		} );
+	setMembershipAmount = id => {
+		const innerButtons = select( 'core/editor' ).getBlocksByClientId( this.props.clientId );
+		if ( innerButtons.length ) {
+			innerButtons[ 0 ].innerBlocks.forEach( block => {
+				dispatch( 'core/editor' ).updateBlockAttributes( block.clientId, {
+					text: this.getFormattedPriceByProductId( id ) + __( ' Contribution', 'jetpack' ),
+				} );
+			} );
+		}
+
+		return this.props.setAttributes( { planId: id } );
+	};
 
 	renderMembershipAmounts = () => (
 		<div>
@@ -511,18 +516,7 @@ class MembershipsButtonEdit extends Component {
 				{ ( ( ( this.hasUpgradeNudge || ! this.state.shouldUpgrade ) &&
 					connected !== API_STATE_LOADING ) ||
 					this.props.attributes.planId ) && (
-					<SubmitButton
-						{ ...{
-							attributes: pick( this.props.attributes, [
-								'submitButtonText',
-								'backgroundButtonColor',
-								'textButtonColor',
-								'customBackgroundButtonColor',
-								'customBackgroundButtonColor',
-							] ),
-							setAttributes: this.props.setAttributes,
-						} }
-					/>
+					<InnerBlocks template={ [ [ 'jetpack/button', { element: 'a' } ] ] } templateLock="all" />
 				) }
 				{ this.hasUpgradeNudge && connected === API_STATE_NOTCONNECTED && (
 					<div className="wp-block-jetpack-recurring-payments disclaimer-only">
@@ -535,6 +529,6 @@ class MembershipsButtonEdit extends Component {
 }
 
 export default compose( [
-	withSelect( select => ( { postId: select( 'core/editor' ).getCurrentPostId() } ) ),
+	withSelect( selector => ( { postId: selector( 'core/editor' ).getCurrentPostId() } ) ),
 	withNotices,
 ] )( MembershipsButtonEdit );
