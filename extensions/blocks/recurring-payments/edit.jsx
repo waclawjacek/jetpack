@@ -7,7 +7,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import formatCurrency from '@automattic/format-currency';
 import { addQueryArgs, getQueryArg, isURL } from '@wordpress/url';
 import { compose } from '@wordpress/compose';
-import { withSelect, select, dispatch } from '@wordpress/data';
+import { withSelect, withDispatch } from '@wordpress/data';
 import {
 	Button,
 	ExternalLink,
@@ -339,16 +339,16 @@ class MembershipsButtonEdit extends Component {
 	};
 
 	setMembershipAmount = id => {
-		const innerButtons = select( 'core/editor' ).getBlocksByClientId( this.props.clientId );
+		const { innerButtons, updateBlockAttributes, setAttributes } = this.props;
 		if ( innerButtons.length ) {
 			innerButtons[ 0 ].innerBlocks.forEach( block => {
-				dispatch( 'core/editor' ).updateBlockAttributes( block.clientId, {
+				updateBlockAttributes( block.clientId, {
 					text: this.getFormattedPriceByProductId( id ) + __( ' Contribution', 'jetpack' ),
 				} );
 			} );
 		}
 
-		return this.props.setAttributes( { planId: id } );
+		return setAttributes( { planId: id } );
 	};
 
 	renderMembershipAmounts = () => (
@@ -529,6 +529,13 @@ class MembershipsButtonEdit extends Component {
 }
 
 export default compose( [
-	withSelect( selector => ( { postId: selector( 'core/editor' ).getCurrentPostId() } ) ),
+	withSelect( ( select, { clientId } ) => ( {
+		postId: select( 'core/editor' ).getCurrentPostId(),
+		innerButtons: select( 'core/editor' ).getBlocksByClientId( clientId ),
+	} ) ),
+	withDispatch( dispatch => {
+		const { updateBlockAttributes } = dispatch( 'core/editor' );
+		return { updateBlockAttributes };
+	} ),
 	withNotices,
 ] )( MembershipsButtonEdit );
