@@ -311,25 +311,30 @@ class Manager {
 	 */
 	public function verify_xml_rpc_signature() {
 		if ( is_null( $this->xmlrpc_verification ) ) {
-			$this->xmlrpc_verification = $this->internal_verify_xml_rpc_signature();
 
-			if ( is_wp_error( $this->xmlrpc_verification ) ) {
-				/**
-				 * Action for logging XMLRPC signature verification errors. This data is sensitive.
-				 *
-				 * Error codes:
-				 * - malformed_token
-				 * - malformed_user_id
-				 * - unknown_token
-				 * - could_not_sign
-				 * - invalid_nonce
-				 * - signature_mismatch
-				 *
-				 * @since 7.5.0
-				 *
-				 * @param WP_Error $signature_verification_error The verification error
-				 */
-				do_action( 'jetpack_verify_signature_error', $this->xmlrpc_verification );
+			$this->xmlrpc_verification = false;
+
+			if ( Constants::get_constant( 'JETPACK__API_VERSION' ) && ( new Plugin( 'jetpack' ) )->is_enabled() ) {
+				$this->xmlrpc_verification = $this->internal_verify_xml_rpc_signature();
+
+				if ( is_wp_error( $this->xmlrpc_verification ) ) {
+					/**
+					 * Action for logging XMLRPC signature verification errors. This data is sensitive.
+					 *
+					 * Error codes:
+					 * - malformed_token
+					 * - malformed_user_id
+					 * - unknown_token
+					 * - could_not_sign
+					 * - invalid_nonce
+					 * - signature_mismatch
+					 *
+					 * @param WP_Error $signature_verification_error The verification error
+					 *
+					 * @since 7.5.0
+					 */
+					do_action( 'jetpack_verify_signature_error', $this->xmlrpc_verification );
+				}
 			}
 		}
 
