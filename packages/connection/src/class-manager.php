@@ -84,7 +84,7 @@ class Manager {
 		$manager->setup_xmlrpc_handlers(
 			$_GET, // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$manager->is_active(),
-			$manager->verify_xml_rpc_signature()
+			class_exists( 'Jetpack' ) && $manager->verify_xml_rpc_signature()
 		);
 
 		if ( $manager->is_active() ) {
