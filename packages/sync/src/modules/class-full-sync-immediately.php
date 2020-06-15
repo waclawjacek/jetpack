@@ -47,10 +47,8 @@ class Full_Sync_Immediately extends Module {
 	 * Initialize action listeners for full sync.
 	 *
 	 * @access public
-	 *
-	 * @param callable $callable Action handler callable.
 	 */
-	public function init_full_sync_listeners( $callable ) {
+	public function init_full_sync_listeners() {
 	}
 
 	/**
@@ -295,7 +293,7 @@ class Full_Sync_Immediately extends Module {
 			case 'posts':
 				$table     = $wpdb->posts;
 				$id        = 'ID';
-				$where_sql = Settings::get_blacklisted_post_types_sql();
+				$where_sql = Settings::get_blocklist_post_types_sql();
 
 				break;
 			case 'comments':
@@ -427,10 +425,7 @@ class Full_Sync_Immediately extends Module {
 
 	/**
 	 * Empty Function as we don't close buffers on Immediate Full Sync.
-	 *
-	 * @param array $actions an array of actions, ignored for queueless sync.
 	 */
-	public function update_sent_progress_action( $actions ) {
-		return;
+	public function update_sent_progress_action() {
 	}
 }
